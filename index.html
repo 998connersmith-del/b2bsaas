@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GymIQ — AI Workout Plans for Gym Chains</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --off-black: #111111;
+    --card: #161616;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --white: #f5f2ed;
+    --muted: rgba(245,242,237,0.45);
+    --accent: #d4ff4e;
+    --accent-dim: rgba(212,255,78,0.12);
+    --accent-border: rgba(212,255,78,0.3);
+    --red: #ff4e4e;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-body);
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.5;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1.25rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .nav-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .nav-cta {
+    background: var(--accent);
+    color: var(--black);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 0.55rem 1.4rem;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s;
+  }
+
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* SECTIONS */
+  section { padding: 7rem 3rem; }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 9rem 3rem 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+  }
+
+  .hero-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 3rem;
+    width: 2px;
+    height: 40vh;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+
+  .hero-tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.1s forwards;
+  }
+
+  .hero-headline {
+    font-family: var(--font-display);
+    font-size: clamp(5rem, 12vw, 11rem);
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.25s forwards;
+  }
+
+  .hero-headline span { color: var(--accent); }
+
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 540px;
+    margin-top: 2rem;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.45s forwards;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 4rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-stat-num {
+    font-family: var(--font-display);
+    font-size: 2.8rem;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .hero-stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+
+  .hero-cta-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.75s forwards;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--black);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.85rem 2rem;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--white);
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 0.9rem;
+    padding: 0.85rem 2rem;
+    border: 1px solid var(--border-hover);
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: border-color 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  /* PROBLEM */
+  .problem-section {
+    background: var(--off-black);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .section-headline {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+
+  .problem-cell {
+    background: var(--off-black);
+    padding: 2.5rem;
+    transition: background 0.2s;
+  }
+
+  .problem-cell:hover { background: #1a1a1a; }
+
+  .problem-num {
+    font-family: var(--font-display);
+    font-size: 4rem;
+    color: var(--red);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .problem-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+  }
+
+  .problem-desc {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* HOW IT WORKS */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 4rem;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 2rem;
+    padding: 2.5rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+    transition: background 0.2s;
+  }
+
+  .step:first-child { border-top: 1px solid var(--border); }
+
+  .step-num {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    color: var(--border-hover);
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .step:hover .step-num { color: var(--accent); }
+
+  .step-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 0.4rem;
+  }
+
+  .step-desc {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.65;
+    max-width: 580px;
+  }
+
+  /* DIFFERENTIATORS */
+  .diff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+
+  .diff-card {
+    background: var(--card);
+    padding: 2rem;
+    transition: background 0.2s;
+  }
+
+  .diff-card:hover { background: #1e1e1e; }
+
+  .diff-icon {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .diff-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+  }
+
+  .diff-desc {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* COMPETITOR TABLE */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 3rem;
+    font-size: 0.9rem;
+  }
+
+  .comp-table th {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 400;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .comp-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: middle;
+  }
+
+  .comp-table tr.highlight td {
+    background: var(--accent-dim);
+    color: var(--white);
+    border-bottom: 1px solid var(--accent-border);
+  }
+
+  .comp-table tr.highlight td:first-child {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .check { color: var(--accent); font-size: 1rem; }
+  .cross { color: var(--red); font-size: 1rem; }
+  .partial { color: #f5a623; font-size: 1rem; }
+
+  /* REVENUE MODEL */
+  .revenue-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+
+  .revenue-card {
+    background: var(--card);
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+  }
+
+  .revenue-card:hover { background: #1c1c1c; }
+
+  .revenue-card.featured {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+  }
+
+  .revenue-badge {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+    padding: 0.25rem 0.7rem;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+  }
+
+  .revenue-type {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+  }
+
+  .revenue-price {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+
+  .revenue-desc {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* WEB APP CALLOUT */
+  .webapp-callout {
+    margin-top: 2rem;
+    padding: 2rem 2.5rem;
+    border: 1px solid var(--border-hover);
+    background: var(--card);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .webapp-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .webapp-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .webapp-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 0.35rem;
+  }
+
+  .webapp-desc {
+    font-size: 0.875rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* MARKET */
+  .market-numbers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    margin-top: 4rem;
+  }
+
+  .market-num {
+    border-top: 2px solid var(--accent);
+    padding-top: 1.5rem;
+  }
+
+  .market-figure {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .market-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* NEXT STEPS */
+  .next-steps {
+    background: var(--off-black);
+    border-top: 1px solid var(--border);
+  }
+
+  .steps-list {
+    margin-top: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .next-step {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .next-step:first-child { border-top: 1px solid var(--border); }
+
+  .next-step-arrow {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .next-step-text {
+    font-size: 1rem;
+    color: var(--white);
+    font-weight: 400;
+  }
+
+  .next-step-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  /* FOOTER CTA */
+  .footer-cta {
+    text-align: center;
+    padding: 8rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .footer-cta-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(212,255,78,0.06), transparent);
+    pointer-events: none;
+  }
+
+  .footer-headline {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 8vw, 7rem);
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .footer-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 440px;
+    margin: 0 auto 2.5rem;
+    position: relative;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .footer-note {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s, transform 0.7s;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--border-hover); }
+
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    section { padding: 4rem 1.5rem; }
+    .hero { padding: 8rem 1.5rem 4rem; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .revenue-cards { grid-template-columns: 1fr; }
+    .market-numbers { grid-template-columns: 1fr 1fr; }
+    .hero-stats { flex-wrap: wrap; gap: 2rem; }
+    .step { grid-template-columns: 60px 1fr; gap: 1rem; }
+    .webapp-callout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">GYMIQ</div>
+  <div class="nav-tag">AI Fitness Intelligence</div>
+  <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Request Pilot</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-lines"></div>
+  <div class="hero-accent-bar"></div>
+  <div class="container" style="position:relative; z-index:2;">
+    <div class="hero-tag">The future of gym retention</div>
+    <h1 class="hero-headline">
+      YOUR GYM.<br>
+      EVERY<br>
+      MEMBER.<br>
+      <span>A PLAN.</span>
+    </h1>
+    <p class="hero-sub">GymIQ generates personalised, trainer-validated AI workout plans built around your gym's actual equipment — delivered as a web app, no smart machines required.</p>
+
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">30%</div>
+        <div class="hero-stat-label">of members quit<br>within 90 days</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">$120</div>
+        <div class="hero-stat-label">avg cost to acquire<br>each member</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">40K+</div>
+        <div class="hero-stat-label">US gym locations<br>with no solution</div>
+      </div>
+    </div>
+
+    <div class="hero-cta-row">
+      <button class="btn-primary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">See How It Works</button>
+      <button class="btn-ghost" onclick="document.getElementById('compare').scrollIntoView({behavior:'smooth'})">Compare to EGYM</button>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem-section">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">The Problem</div>
+      <h2 class="section-headline">Gyms are losing<br>members they already<br>paid to acquire.</h2>
+      <p style="color: var(--muted); max-width: 520px; font-size: 1rem;">When someone joins a gym, they get a membership card and a floor full of machines they don't know how to use. No plan. No guidance. No reason to come back. The result is a disaster for retention.</p>
+    </div>
+
+    <div class="problem-grid reveal">
+      <div class="problem-cell">
+        <div class="problem-num">30%</div>
+        <div class="problem-title">Early member churn</div>
+        <div class="problem-desc">Nearly a third of gym members quit within their first 90 days. Not because they don't want to work out — because they have no idea what to do when they get there.</div>
+      </div>
+      <div class="problem-cell">
+        <div class="problem-num">$120</div>
+        <div class="problem-title">Wasted per lost member</div>
+        <div class="problem-desc">Gyms spend $50–$120 acquiring each member. When they quit in month two, that money is gone — and the next acquisition cost starts over.</div>
+      </div>
+      <div class="problem-cell">
+        <div class="problem-num">99%</div>
+        <div class="problem-title">Gyms without a solution</div>
+        <div class="problem-desc">The only comparable product (EGYM Genius) requires proprietary smart machines that cost tens of thousands of dollars. Most gyms can't afford it.</div>
+      </div>
+      <div class="problem-cell">
+        <div class="problem-num">0</div>
+        <div class="problem-title">Personalised plans at onboarding</div>
+        <div class="problem-desc">Most gym chains give new members a tour and a key fob. Zero personalisation. Zero structured programming. Zero reason to stay past month three.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-headline">Five steps.<br>Thousands of<br>plans generated.</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div>
+          <div class="step-title">Gym inputs their equipment inventory</div>
+          <div class="step-desc">The gym owner or manager logs every machine, cable station, free weight, and cardio piece they have in GymIQ's web dashboard. This takes 20 minutes and becomes the foundation of every plan. GymIQ only ever recommends equipment that physically exists at that location.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">02</div>
+        <div>
+          <div class="step-title">New member completes a 2-minute intake</div>
+          <div class="step-desc">When a member joins, they answer a short goal questionnaire — fitness level, goals (muscle, fat loss, endurance), days available per week, any injuries or limitations. Frictionless. Mobile-first. Done before they leave the front desk.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">03</div>
+        <div>
+          <div class="step-title">AI generates a personalised, location-specific plan</div>
+          <div class="step-desc">GymIQ instantly creates a structured week-by-week workout program using only that gym's equipment. The plan matches the member's specific goals and adapts progressively as they track their sessions. No generic templates. No one-size-fits-all.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">04</div>
+        <div>
+          <div class="step-title">Certified trainers review and validate</div>
+          <div class="step-desc">AI-generated plans go through a trainer review layer for safety and effectiveness. This human validation is GymIQ's moat — it's not just an algorithm, it's trainer-backed programming. This makes the product credible to gym chains and members alike.</div>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">05</div>
+        <div>
+          <div class="step-title">Delivered via the gym's white-labelled web app</div>
+          <div class="step-desc">Members access their plan through a web app branded with the gym's name and logo — no download required. Works on any device, instantly. The gym looks premium and tech-forward without building anything. GymIQ is the engine under the hood — invisible, seamless, powerful.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIFFERENTIATORS -->
+<section style="background: var(--off-black); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Why GymIQ</div>
+      <h2 class="section-headline">Built for the<br>gyms that actually<br>exist.</h2>
+    </div>
+
+    <div class="diff-grid reveal">
+      <div class="diff-card">
+        <div class="diff-icon">🔌</div>
+        <div class="diff-title">No smart machines needed</div>
+        <div class="diff-desc">Works with any standard equipment — Nautilus, Hammer Strength, Life Fitness, dumbbells, cables, cardio. EGYM requires their proprietary hardware costing tens of thousands.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">🌐</div>
+        <div class="diff-title">Web app — no download friction</div>
+        <div class="diff-desc">GymIQ is delivered as a web app. Members open a link, and they're in. No app store. No install barrier. Adoption is instant because there's nothing to download.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">📍</div>
+        <div class="diff-title">Location-specific plans</div>
+        <div class="diff-desc">Every plan is built around what's actually at that specific gym location. A member at Branch A gets a different plan than a member at Branch B — because they have different equipment.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">🛡️</div>
+        <div class="diff-title">Trainer-validated</div>
+        <div class="diff-desc">Certified trainers review AI outputs for safety, biomechanical accuracy, and effectiveness. This gives gym chains the confidence to offer it to every new member.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">🏷️</div>
+        <div class="diff-title">Fully white-labelled</div>
+        <div class="diff-desc">The gym's name, logo, and brand. Members see a premium product from their gym. The gym gets all the credit. GymIQ stays invisible. Gyms are motivated to push it because it reflects on them.</div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-icon">⚡</div>
+        <div class="diff-title">Live in days, not months</div>
+        <div class="diff-desc">No hardware install. No weeks of integration. A gym is fully live within days of signing — equipment entered, plans generating, members onboarding with personalised programs.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETITIVE COMPARISON -->
+<section id="compare">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Competitive Landscape</div>
+      <h2 class="section-headline">The gap nobody<br>has filled.</h2>
+    </div>
+
+    <div class="reveal">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Works with standard equipment</th>
+            <th>Location-specific plans</th>
+            <th>White-label web app</th>
+            <th>Trainer-validated</th>
+            <th>B2B gym integration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight">
+            <td>GymIQ ✦</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td>EGYM Genius</td>
+            <td><span class="cross">✗ (own hardware only)</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+            <td><span class="partial">~</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Fitbod / FitnessAI</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+          <tr>
+            <td>ABC Trainerize</td>
+            <td><span class="partial">~</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="partial">~</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="partial">~</span></td>
+          </tr>
+          <tr>
+            <td>Generic AI apps</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+            <td><span class="cross">✗</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- REVENUE MODEL -->
+<section style="background: var(--off-black); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Revenue Model</div>
+      <h2 class="section-headline">Two ways<br>to win.</h2>
+    </div>
+
+    <div class="revenue-cards reveal">
+      <div class="revenue-card">
+        <div class="revenue-badge">B2B</div>
+        <div class="revenue-type">GYM CHAIN</div>
+        <div class="revenue-price">$X / location / month</div>
+        <div class="revenue-desc">Sell directly to gym chains and franchise operators. They pay a monthly fee per location to offer GymIQ as a member benefit via their white-labelled web app. High LTV, low churn. One deal can unlock 50+ locations.</div>
+      </div>
+      <div class="revenue-card featured">
+        <div class="revenue-badge">B2B2C — Recommended</div>
+        <div class="revenue-type">PREMIUM TIER</div>
+        <div class="revenue-price">Revenue share per subscriber</div>
+        <div class="revenue-desc">The gym offers GymIQ as a premium add-on (e.g. $10/month for members who want personalised AI coaching). GymIQ takes a cut. Aligns incentives — the gym actively sells it because they earn from it too.</div>
+      </div>
+    </div>
+
+    <div class="webapp-callout reveal">
+      <div class="webapp-icon">🌐</div>
+      <div>
+        <div class="webapp-label">Delivery</div>
+        <div class="webapp-title">Sold and delivered entirely as a web app</div>
+        <div class="webapp-desc">GymIQ requires no app store listing, no native development, and no hardware. Gyms sign up, get a branded web app link to share with members, and they're live. Frictionless for the gym. Frictionless for the member. Fast to ship, easy to scale.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARKET SIZE -->
+<section>
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Market Opportunity</div>
+      <h2 class="section-headline">A massive market<br>with no dominant<br>player.</h2>
+    </div>
+
+    <div class="market-numbers reveal">
+      <div class="market-num">
+        <div class="market-figure">40K+</div>
+        <div class="market-label">US gym locations without access to EGYM's hardware</div>
+      </div>
+      <div class="market-num">
+        <div class="market-figure">$100B+</div>
+        <div class="market-label">US fitness industry annual revenue</div>
+      </div>
+      <div class="market-num">
+        <div class="market-figure">72M</div>
+        <div class="market-label">gym members in the US alone</div>
+      </div>
+      <div class="market-num">
+        <div class="market-figure">30%</div>
+        <div class="market-label">early churn that personalised onboarding can directly address</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 3rem; padding: 2rem; border: 1px solid var(--accent-border); background: var(--accent-dim);" class="reveal">
+      <p style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.75rem;">Simple math</p>
+      <p style="color: var(--white); font-size: 1rem; line-height: 1.7;">If GymIQ charges <strong>$200/month per location</strong> and signs up just <strong>500 gym locations</strong> — a fraction of the 40,000+ available — that's <strong>$1.2M ARR</strong>. Scale to 5,000 locations and you're at <strong>$12M ARR</strong> before touching the B2B2C premium tier.</p>
+    </div>
+  </div>
+</section>
+
+<!-- NEXT STEPS -->
+<section class="next-steps" id="contact">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Next Steps</div>
+      <h2 class="section-headline">Here's how<br>we build this.</h2>
+    </div>
+
+    <div class="steps-list reveal">
+      <div class="next-step">
+        <div class="next-step-arrow">→ 01</div>
+        <div>
+          <div class="next-step-text">Validate with 5–10 gym managers</div>
+          <div class="next-step-sub">Cold call or walk into local gyms. Ask: "Would you pay $X/month to give every new member a personalised workout plan delivered via a web app?" Listen. Iterate the pitch.</div>
+        </div>
+      </div>
+      <div class="next-step">
+        <div class="next-step-arrow">→ 02</div>
+        <div>
+          <div class="next-step-text">Partner with 2–3 certified trainers</div>
+          <div class="next-step-sub">Find trainers willing to review AI-generated plans in exchange for credit or revenue share. This is the credibility layer that makes GymIQ different from a generic app.</div>
+        </div>
+      </div>
+      <div class="next-step">
+        <div class="next-step-arrow">→ 03</div>
+        <div>
+          <div class="next-step-text">Build the MVP as a web app</div>
+          <div class="next-step-sub">Equipment input dashboard + member goal intake + AI plan generator + trainer review interface. Web-first, no native app needed. Ship fast and functional. Validate the core loop before adding polish.</div>
+        </div>
+      </div>
+      <div class="next-step">
+        <div class="next-step-arrow">→ 04</div>
+        <div>
+          <div class="next-step-text">Land one pilot gym chain</div>
+          <div class="next-step-sub">Offer 3 months free in exchange for real usage data and a testimonial. One happy gym chain with measurable retention improvements is worth more than any marketing spend.</div>
+        </div>
+      </div>
+      <div class="next-step">
+        <div class="next-step-arrow">→ 05</div>
+        <div>
+          <div class="next-step-text">Scale the sales motion</div>
+          <div class="next-step-sub">Use the pilot case study to cold-call franchise operators. One regional VP saying yes unlocks 10–50 locations at once. That's where the business scales fast.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER CTA -->
+<section class="footer-cta">
+  <div class="footer-cta-bg"></div>
+  <div class="container" style="position: relative; z-index: 2;">
+    <h2 class="footer-headline reveal">READY TO<br>BUILD THIS?</h2>
+    <p class="footer-sub reveal">The gap is real. The market is massive. The competition requires hardware 99% of gyms will never buy. This is the window.</p>
+
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">GYMIQ</div>
+  <div class="footer-note">AI Fitness Intelligence — Built for the gyms that actually exist.</div>
+</footer>
+
+<script>
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
